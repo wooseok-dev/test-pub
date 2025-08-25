@@ -1,33 +1,25 @@
 #!/bin/bash
-# Build three fuzzers and package seed corpora for OSS-Fuzz.
 set -euxo pipefail
 
-# Environment provided by base-builder:
-#  - CC/CXX/CFLAGS/CXXFLAGS
-#  - LIB_FUZZING_ENGINE
-#  - OUT (output dir for fuzz targets)
-#  - SRC (source dir)
+# helper.py 가 /src/build.sh 를 실행하므로 CWD는 /src 입니다.
+# 환경변수: CC/CXX/CFLAGS/CXXFLAGS/LIB_FUZZING_ENGINE/OUT
 
-# 1) toy-ini -> fuzz_ini
-$CXX $CXXFLAGS -I projects/toy-ini \
-  projects/toy-ini/ini.c projects/toy-ini/fuzz_ini.cc \
-  $LIB_FUZZING_ENGINE -o $OUT/fuzz_ini
+# 소스 존재 확인 (디버깅에 도움)
+test -f toy-ini/ini.c
+test -f toy-ini/fuzz_ini.cc
 
-# 2) tlv -> fuzz_tlv
-$CXX $CXXFLAGS -I projects/tlv \
-  projects/tlv/tlv.c projects/tlv/fuzz_tlv.cc \
-  $LIB_FUZZING_ENGINE -o $OUT/fuzz_tlv
+# C는 CC로 객체 생성, 링크는 CXX로 (libFuzzer는 C++ 링크 필요)
+$CC  $CFLAGS   -I toy-ini -c toy-ini/ini.c -o ini.o
+$CXX $CXXFLAGS            ini.o toy-ini/fuzz_ini.cc \
+     $LIB_FUZZING_ENGINE -o $OUT/fuzz_ini
 
-# 3) numparse -> fuzz_numparse
-$CXX $CXXFLAGS -I projects/numparse \
-  projects/numparse/numparse.c projects/numparse/fuzz_numparse.cc \
-  $LIB_FUZZING_ENGINE -o $OUT/fuzz_numparse
+# --- Seed corpus 패키징 ---
+# toy-ini/seed_corpus 폴더가 있으면 zip으로 묶어 fuzzer와 같은 이름 규칙으로 저장
+if [ -d toy-ini/seed_corpus ]; then
+  # -r: 재귀, -j: 경로 제거(파일만), -q: 조용히
+  zip -r -j -q "$OUT/fuzz_ini_seed_corpus.zip" toy-ini/seed_corpus
+fi
 
-# Seed corpora (flattened)
-zip -r -j -q "$OUT/fuzz_ini_seed_corpus.zip" projects/toy-ini/seed_corpus || true
-#zip -r -j -q "$OUT/fuzz_tlv_seed_corpus.zip" projects/tlv/seed_corpus || true
-#zip -r -j -q "$OUT/fuzz_numparse_seed_corpus.zip" projects/numparse/seed_corpus || true
-
-echo "Built fuzzers into $OUT:"
-ls -l $OUT
+# 산출물 확인
+ls -l "$OUT"
 
