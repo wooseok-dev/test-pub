@@ -1,4 +1,0 @@
-language: c++
-sanitizers:
-  - address
-main_repo: https://github.com/wooseok-dev/test-pub 
