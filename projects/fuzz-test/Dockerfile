@@ -1,15 +1,24 @@
 FROM gcr.io/oss-fuzz-base/base-builder
+RUN apt-get update && apt-get install -y build-essential
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    make cmake zip \
- && rm -rf /var/lib/apt/lists/*
+WORKDIR $SRC
+COPY pkgs/integration-test.tar.gz $SRC/
 
-# 이 폴더(= 프로젝트 디렉토리)를 /src로 복사 → /src/toy-ini/... 구조가 됨
-COPY . /src/
+RUN tar -xzf $SRC/integration-test.tar.gz && rm $SRC/integration-test.tar.gz
 
-# helper.py가 /src/build.sh를 실행하므로 권한만 부여
-RUN chmod +x /src/build.sh
+COPY build.sh $SRC/
+COPY fuzz_* *.options $SRC/
+WORKDIR $SRC/integration-test
 
-WORKDIR /src
-# CMD 없음: infra/helper.py가 /src/build.sh를 실행합니다.
 
+
+FROM ghcr.io/aixcc-finals/base-builder:v1.2.1
+RUN apt-get update && apt-get install -y build-essential
+
+WORKDIR $SRC
+COPY pkgs/test-pub.tar.gz $SRC/
+RUN tar -xzf $SRC/test-pub.tar.gz && rm $SRC/test-pub.tar.gz
+
+COPY build.sh $SRC/
+COPY fuzz_* $SRC/
+WORKDIR $SRC/test-pub
