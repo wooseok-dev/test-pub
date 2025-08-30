@@ -6,5 +6,5 @@ COPY pkgs/test-pub.tar.gz $SRC/
 RUN tar -xzf $SRC/test-pub.tar.gz && rm $SRC/test-pub.tar.gz
 
 COPY build.sh $SRC/
-COPY fuzz_* $SRC/
+COPY fuzz* $SRC/
 WORKDIR $SRC/test-pub
