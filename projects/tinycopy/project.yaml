@@ -1,0 +1,16 @@
+# OSS-Fuzz 프로젝트 메타
+homepage: "https://github.com/wooseok-dev/tinycopy"
+primary_contact: "you@example.com"
+auto_ccs:
+  - "security@example.com"
+language: c++
+fuzzing_engines:
+  - libfuzzer
+sanitizers:
+  - address
+  - undefined
+# 메모리 퍼저는 프로젝트에 따라 비활성화 가능
+#  - memory
+
+# OSS-Fuzz가 소스 동기화 시 참조할 upstream (권장)
+main_repo: "https://github.com/wooseok-dev/tinycopy"
